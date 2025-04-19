@@ -14,7 +14,6 @@ public class Container extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // define botão de fechar.
         setLocationRelativeTo(null); // define ponto inicial da tela (meio)
         setVisible(true);
-        // aqui você pode inicializar players/estrelas com dimensões corretas
         SwingUtilities.invokeLater(fase::inicializar);
     }
     public static void main(String[] args) {

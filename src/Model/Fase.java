@@ -21,11 +21,13 @@ public class Fase extends JPanel implements ActionListener {
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
+                // Verifica se a tela é redimensionada, se for atualiza os valores de
+                // Altura e Largura em cada player
+
                 alturaVisivel = getHeight();
                 larguraVisivel = getWidth();
-                System.out.println("Altura visível atualizada: " + alturaVisivel);
-                System.out.println("Largura visível atualizada: " + larguraVisivel);
-
+//                System.out.println("Altura visível atualizada: " + alturaVisivel);
+//                System.out.println("Largura visível atualizada: " + larguraVisivel);
                 if (player != null) {
                     player.setFaseDimensoes(alturaVisivel, larguraVisivel);
                 }
@@ -57,12 +59,15 @@ public class Fase extends JPanel implements ActionListener {
     public void paintComponent(Graphics g){
         super.paintComponent(g);
         Graphics2D graficos = (Graphics2D) g;
+        // Exibe a imagem de fundo no painel;
         graficos.drawImage(fundo, 0, 0, getWidth(), getHeight(), null);
 
+        // Percorre o array exibindo a estrelas;
         for (Estrelas s : estrelas) {
             s.load();
             graficos.drawImage(s.getImage(), s.getX(), s.getY(), this);
         }
+        // Se o player ainda estiver vivo, exibe o player;
         if(player.isVisible()){
             graficos.drawImage(player.getImagem(), player.getX(), player.getY(),this);
             List<Tiro> tiros = player.getTiros();
@@ -82,6 +87,7 @@ public class Fase extends JPanel implements ActionListener {
         g.dispose();
     }
     public void inicializarEstrelas(){
+        // Inicializa as estrelas em posições aleátorias e armazena em um array;
         int coordenadas[] = new int[5];
          estrelas = new ArrayList<Estrelas>();
          for(int i=0;i<coordenadas.length;i++){
@@ -93,6 +99,7 @@ public class Fase extends JPanel implements ActionListener {
          }
     }
     public void checarColisoes(Player p, Player enemy){
+        // Verifica se algum disparo atingiu o player e reduz o HP;
         Rectangle enemyBounds = enemy.getBounds();
         Rectangle formaTiro;
         List<Tiro> tiros = p.getTiros();

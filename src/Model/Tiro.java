@@ -28,6 +28,8 @@ public class Tiro {
         this.altura = image.getHeight(null);
     }
     public void update(){
+        // Atualiza a posição do disparo até que ele saia da tela ou acerte o outro player;
+        // Se o player for o Host(o player da parte de baixo da tela) o tiro deve subir.
         if(isLocal){
             this.y -= velocidade;
             if(this.y < 0){
@@ -42,6 +44,7 @@ public class Tiro {
     }
 
     public Rectangle getBounds(){
+        // Cria um retangulo nos limites do sprite que é utilizado para definir as colisões;
         return new Rectangle(x,y,largura,altura);
     }
 
