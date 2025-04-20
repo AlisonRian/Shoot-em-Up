@@ -18,7 +18,8 @@ public class Player {
     private int hp; // quantidade de disparos necessários para ser derrotado;
     private String projectile; // Path do sprite do disparo;
     private int faseHeight, faseWidth; // Altura e Largura da tela;
-    private long ultimoTiro; // para armazenar o timestamp do último tiro
+    private long ultimoTiro;// para armazenar o timestamp do último tiro
+    private int qtdTiros;
 
     public Player(String path, boolean local, String pathProjectile){
         this.imagem =  new ImageIcon(path).getImage();
@@ -40,7 +41,6 @@ public class Player {
     public void update(){
         x += dx; // Atualiza a posição no eixo X a partir da tecla pressionada;
         y += dy; // Atualiza a posição no eixo Y a partir da tecla pressionada;
-
         // Utilizado para garantir que o player não possa ultrapassar os limites da tela.
         // Se ele tenta ultrapassar é teleportado para o limite permitido;;
         if (x < 0) x = 0;
@@ -63,8 +63,12 @@ public class Player {
         long intervaloTiro = 150;
         if (agora - ultimoTiro >= intervaloTiro) { // Utilizado para dar um "delay" entre cada disparo;
             this.tiros.add(new Tiro(offsetX,offsetY, projectile,faseHeight,faseWidth,isLocal));
+            qtdTiros++;
             ultimoTiro = agora;
         }
+    }
+    public void draw(Graphics g){
+        g.drawImage(imagem,x,y,null);
     }
     public Rectangle getBounds(){
         // Cria um retangulo nos limites do sprite que é utilizado para definir as colisões;
@@ -160,5 +164,8 @@ public class Player {
 
     public void setX(int x) {
         this.x = x;
+    }
+    public int getQtdTiros(){
+        return qtdTiros;
     }
 }
