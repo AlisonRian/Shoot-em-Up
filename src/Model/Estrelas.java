@@ -14,7 +14,7 @@ public class Estrelas {
     public Estrelas(int x, int y, int heigth, int width){
         this.x = x;
         this.y = y;
-        this.imagem = new ImageIcon("images/stars_1.png").getImage();
+        this.imagem = new ImageIcon("Shoot-em-Up/images/stars_1.png").getImage();
         this.isVisible = true;
         this.faseHeigth = heigth;
         this.faseWidth = width;

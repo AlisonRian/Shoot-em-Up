@@ -1,6 +1,8 @@
 package Model;
 
+
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -136,6 +138,10 @@ public class Player {
 
     public List<Tiro> getTiros() {
         return tiros;
+    }
+
+    public int getAltura() {
+        return altura;
     }
 
     public boolean isVisible() {

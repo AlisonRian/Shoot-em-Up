@@ -1,6 +1,5 @@
-import Model.Fase;
-
 import javax.swing.*;
+import Model.Fase;
 import java.awt.*;
 
 public class Container extends JFrame {
