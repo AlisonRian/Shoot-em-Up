@@ -1,8 +1,6 @@
 package Model;
 
-
 import javax.swing.*;
-
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -20,7 +18,8 @@ public class Player {
     private int hp; // quantidade de disparos necessários para ser derrotado;
     private String projectile; // Path do sprite do disparo;
     private int faseHeight, faseWidth; // Altura e Largura da tela;
-    private long ultimoTiro; // para armazenar o timestamp do último tiro
+    private long ultimoTiro;// para armazenar o timestamp do último tiro
+    private int qtdTiros;
 
     public Player(String path, boolean local, String pathProjectile){
         this.imagem =  new ImageIcon(path).getImage();
@@ -29,49 +28,59 @@ public class Player {
         tiros = new ArrayList<Tiro>();
         this.isVisible = true;
         this.hp = 5;
-        if(isLocal){
-            this.y = faseHeight - this.altura;
-        }else{
-            this.y = 10;
-        }
-        this.x = faseWidth/2;
+        
+        // Initializing position will be handled in setFaseDimensoes
     }
+    
     public void load(){
         imagem = imagem.getScaledInstance(64, 64, Image.SCALE_FAST);
     }
+    
     public void update(){
         x += dx; // Atualiza a posição no eixo X a partir da tecla pressionada;
         y += dy; // Atualiza a posição no eixo Y a partir da tecla pressionada;
-
+        
         // Utilizado para garantir que o player não possa ultrapassar os limites da tela.
-        // Se ele tenta ultrapassar é teleportado para o limite permitido;;
         if (x < 0) x = 0;
         if (y < 0) y = 0;
-        if (y>=faseHeight-altura) y = faseHeight-altura;
-        if (x>=faseWidth-largura) x = faseWidth-largura;
-        if(isLocal && y<faseHeight/2) y = faseHeight/2;
-        if(!isLocal && y>=faseHeight/2) y = faseHeight/2;
+        if (y >= faseHeight-altura) y = faseHeight-altura;
+        if (x >= faseWidth-largura) x = faseWidth-largura;
+        
+        // Limitar o movimento vertical pela metade da tela
+        if(isLocal && y < faseHeight/2) y = faseHeight/2;
+        if(!isLocal && y >= faseHeight/2) y = faseHeight/2;
     }
+    
     public void tiro(){
         long agora = System.currentTimeMillis(); // Pega o momento em que o tiro foi disparo;
         int offsetX = x + (largura / 2) - 4; // Define o meio da nave no eixo X;
         int offsetY;
+        
         if(isLocal){ // Utilizado para definir o local da nave no eixo Y onde sai o disparo;
             offsetY = y - 20;
-        }else{
+        } else {
             offsetY = y + 40;
         }
 
         long intervaloTiro = 150;
         if (agora - ultimoTiro >= intervaloTiro) { // Utilizado para dar um "delay" entre cada disparo;
-            this.tiros.add(new Tiro(offsetX,offsetY, projectile,faseHeight,faseWidth,isLocal));
+            this.tiros.add(new Tiro(offsetX, offsetY, projectile, faseHeight, faseWidth, isLocal));
+            qtdTiros++;
             ultimoTiro = agora;
         }
     }
+    
+    public void draw(Graphics g){
+        if (isVisible) {
+            g.drawImage(imagem, x, y, null);
+        }
+    }
+    
     public Rectangle getBounds(){
         // Cria um retangulo nos limites do sprite que é utilizado para definir as colisões;
-        return new Rectangle(x,y,largura,altura);
+        return new Rectangle(x, y, largura, altura);
     }
+    
     public void keyPressed(KeyEvent e){
         int codigo = e.getKeyCode();
         if(codigo == KeyEvent.VK_F){
@@ -98,6 +107,7 @@ public class Player {
             dx = velocidade;
         }
     }
+    
     public void keyRelease(KeyEvent e){
         int codigo = e.getKeyCode();
         // No momento em que uma tecla para de ser pressionada, a posição do jogador para de ser atualizada;
@@ -114,34 +124,36 @@ public class Player {
             dx = 0;
         }
     }
+    
     public void setFaseDimensoes(int altura, int largura) {
-        // Método utilizado para definir dinamicamente as dimensões da tela, quando a tela é expandida,
-        // ou redimensionada, sua altura e largura mudam;
+        // Método utilizado para definir dinamicamente as dimensões da tela
         this.faseHeight = altura;
         this.faseWidth = largura;
+        
         setX(faseWidth/2);
+        
+        // Positioning players - server player at bottom, client player at top
         if(isLocal){
             setY(faseHeight - this.altura);
-        }else{
+        } else {
             setY(10);
         }
     }
+    
     public int getX(){
         return x;
     }
+    
     public int getY(){
         return y;
     }
+    
     public Image getImagem(){
         return imagem;
     }
 
     public List<Tiro> getTiros() {
         return tiros;
-    }
-
-    public int getAltura() {
-        return altura;
     }
 
     public boolean isVisible() {
@@ -166,5 +178,9 @@ public class Player {
 
     public void setX(int x) {
         this.x = x;
+    }
+    
+    public int getQtdTiros(){
+        return qtdTiros;
     }
 }

@@ -1,11 +1,10 @@
 package Model;
 
-
 import javax.swing.*;
 import java.awt.*;
 
 public class Tiro {
-    private Image image;
+    transient private Image image;
     private int x, y;
     private int largura, altura;
     private boolean isVisible; // controla a visibilidade do tiro na tela
@@ -13,6 +12,7 @@ public class Tiro {
     private int alturaPainel;
     private int larguraPainel;
     private boolean isLocal;
+
 
     public Tiro(int x, int y, String path, int alturaP, int larguraP, boolean local){
         this.image = new ImageIcon(path).getImage();
@@ -43,7 +43,9 @@ public class Tiro {
             }
         }
     }
-
+    public void draw(Graphics g){
+        g.drawImage(image, x, y, null);
+    }
     public Rectangle getBounds(){
         // Cria um retangulo nos limites do sprite que é utilizado para definir as colisões;
         return new Rectangle(x,y,largura,altura);

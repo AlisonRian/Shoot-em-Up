@@ -1,6 +1,5 @@
 package Model;
 
-import network.ClientNetwork;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -12,200 +11,242 @@ public class Fase extends JPanel implements ActionListener {
     private Player player, player2;
     private Timer timer;
     private List<Estrelas> estrelas;
-    private int alturaVisivel, larguraVisivel;
-    private ClientNetwork network;
-    private volatile boolean lastShot = false;
-
-    private long lastReceiveTime = -1;
-    private int lastReceivedX, lastReceivedY;
-    private float velocityX = 0f, velocityY = 0f;
-
-    public Fase() {
+    int alturaVisivel, larguraVisivel;
+    private boolean isHost;
+    
+    public Fase(){
         setFocusable(true);
         setDoubleBuffered(true);
-
-        fundo = new ImageIcon("Shoot-em-Up/images/background.png").getImage();
-
-        // Jogador local
-        player = new Player("Shoot-em-Up/images/nave1.png", true, "Shoot-em-Up/images/projectile_1.png");
-        player.load();
-
-        // Jogador remoto
-        player2 = new Player("Shoot-em-Up/images/nave2_edit.png", false, "Shoot-em-Up/images/projectile_2.png");
-        player2.load();
-
-        inicializar();
+        ImageIcon referencia = new ImageIcon("Shoot-em-Up/images/background.png"); // Pega a referencia do background
+        fundo = referencia.getImage(); // define o a imagem pro fundo
 
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
+                // Verifica se a tela é redimensionada, se for atualiza os valores de
+                // Altura e Largura em cada player
                 alturaVisivel = getHeight();
                 larguraVisivel = getWidth();
-                player.setFaseDimensoes(alturaVisivel, larguraVisivel);
-                player2.setFaseDimensoes(alturaVisivel, larguraVisivel);
+                if (player != null) {
+                    player.setFaseDimensoes(alturaVisivel, larguraVisivel);
+                }
+                if (player2 != null) {
+                    player2.setFaseDimensoes(alturaVisivel, larguraVisivel);
+                }
             }
         });
 
-        // Inicializa rede
-        try {
-            network = new ClientNetwork();
-            new Thread(this::networkLoop).start();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        player = new Player("Shoot-em-Up/images/nave1.png", true, "Shoot-em-Up/images/projectile_1.png");
+        player.load();
+
+        player2 = new Player("Shoot-em-Up/images/nave2_edit.png", false, "Shoot-em-Up/images/projectile_2.png");
+        player2.load();
 
         addKeyListener(new Teclado());
-        timer = new Timer(10, this);
+
+        timer = new Timer(5, this);
         timer.start();
         inicializarEstrelas();
     }
 
-    public void inicializar() {
-        alturaVisivel = getHeight() > 0 ? getHeight() : 768;
-        larguraVisivel = getWidth() > 0 ? getWidth() : 1024;
+    public void inicializar(){
+        alturaVisivel = getHeight();
+        larguraVisivel = getWidth();
+        
+        // Initialize player positions
         player.setFaseDimensoes(alturaVisivel, larguraVisivel);
         player2.setFaseDimensoes(alturaVisivel, larguraVisivel);
     }
-
-    @Override
-    protected void paintComponent(Graphics g) {
+    
+    public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D) g;
-        g2.drawImage(fundo, 0, 0, getWidth(), getHeight(), null);
+        Graphics2D graficos = (Graphics2D) g;
+        // Exibe a imagem de fundo no painel;
+        graficos.drawImage(fundo, 0, 0, getWidth(), getHeight(), null);
+        
+        // Exibir mensagem de vitória se um jogador venceu
+        if(player.isVisible() && !player2.isVisible()){
+            g.setColor(Color.RED);
+            g.setFont(new Font("Arial", Font.BOLD, 36));
+            g.drawString("Player 1 Wins!", 50, 100);
+        } else if(!player.isVisible() && player2.isVisible()){
+            g.setColor(Color.BLUE);
+            g.setFont(new Font("Arial", Font.BOLD, 36));
+            g.drawString("Player 2 Wins!", 50, 100);
+        }
 
+        // Percorre o array exibindo a estrelas;
         for (Estrelas s : estrelas) {
             s.load();
-            g2.drawImage(s.getImage(), s.getX(), s.getY(), this);
+            graficos.drawImage(s.getImage(), s.getX(), s.getY(), this);
+        }
+        
+        // Se o player ainda estiver vivo, exibe o player;
+        if(player.isVisible()){
+            Image hp1; Image barra1;
+            hp1 = new ImageIcon("Shoot-em-Up/images/health.png").getImage();
+            barra1 = new ImageIcon("Shoot-em-Up/images/health_bar.png").getImage();
+            int bLargura = 20; int bAltura = 10;
+            int xInicial = larguraVisivel-112; int yInicial = alturaVisivel-22;
+            int soma = 0;
+            graficos.drawImage(hp1, larguraVisivel-114 , alturaVisivel-34, 104, 24, this);
+            for(int i=0; i<player.getHp(); i++){
+                graficos.drawImage(barra1, xInicial+soma, yInicial, bLargura, bAltura, this);
+                soma+=20;
+            }
+            player.draw(g);
+            List<Tiro> tiros = player.getTiros();
+            for (Tiro m : tiros) {
+                m.load();
+                m.draw(g);
+            }
+        }
+        
+        if(player2.isVisible()){
+            Image hp2; Image barra2;
+            hp2 = new ImageIcon("Shoot-em-Up/images/health.png").getImage();
+            barra2 = new ImageIcon("Shoot-em-Up/images/health_bar.png").getImage();
+            int bLargura2 = 20; int bAltura2 = 10;
+            int xInicial2 = 10+2; int yInicial2 = 22;
+            int soma2 = 0;
+            graficos.drawImage(hp2, 10, 10, 104, 24, this);
+            for(int i=0; i<player2.getHp(); i++){
+                graficos.drawImage(barra2, xInicial2+soma2, yInicial2, bLargura2, bAltura2, this);
+                soma2+=20;
+            }
+            player2.draw(g);
+            List<Tiro> tiros2 = player2.getTiros();
+            for (Tiro m : tiros2) {
+                m.load();
+                m.draw(g);
+            }
         }
 
-        if (player.isVisible()) {
-            g2.drawImage(player.getImagem(), player.getX(), player.getY(), this);
-            player.getTiros().forEach(m -> {
-                m.load();
-                g2.drawImage(m.getImage(), m.getX(), m.getY(), this);
-            });
-        }
-
-        if (player2.isVisible()) {
-            g2.drawImage(player2.getImagem(), player2.getX(), player2.getY(), this);
-            player2.getTiros().forEach(m -> {
-                m.load();
-                g2.drawImage(m.getImage(), m.getX(), m.getY(), this);
-            });
+        g.dispose();
+    }
+    
+    public void inicializarEstrelas(){
+        // Inicializa as estrelas em posições aleátorias e armazena em um array;
+        int coordenadas[] = new int[5];
+        estrelas = new ArrayList<Estrelas>();
+        for(int i=0; i<coordenadas.length; i++){
+            int altura = this.getHeight() > 0 ? this.getHeight() : 768;
+            int largura = this.getWidth() > 0 ? this.getWidth() : 1024;
+            int y = (int) (Math.random() * altura + 700);
+            int x = (int) (Math.random() * largura);
+            estrelas.add(new Estrelas(x, y, this.getHeight(), this.getWidth()));
         }
     }
-
-    private void inicializarEstrelas() {
-        estrelas = new ArrayList<>();
-        int alt = getHeight() > 0 ? getHeight() : 768;
-        int larg = getWidth() > 0 ? getWidth() : 1024;
-        for (int i = 0; i < 5; i++) {
-            int y = (int) (Math.random() * alt + 700);
-            int x = (int) (Math.random() * larg);
-            estrelas.add(new Estrelas(x, y, alt, larg));
-        }
-    }
-
-    private void checarColisoes(Player p, Player enemy) {
-        Rectangle eBounds = enemy.getBounds();
-        for (Tiro t : p.getTiros()) {
-            if (t.getBounds().intersects(eBounds)) {
-                enemy.setHp(enemy.getHp() - 1);
-                if (enemy.getHp() <= 0) enemy.setVisible(false);
-                t.setVisible(false);
+    
+    public void checarColisoes(Player p, Player enemy){
+        // Verifica se algum disparo atingiu o player e reduz o HP;
+        Rectangle enemyBounds = enemy.getBounds();
+        Rectangle formaTiro;
+        List<Tiro> tiros = p.getTiros();
+        int hp;
+        for(int i=0; i<tiros.size(); i++){
+            Tiro temp = tiros.get(i);
+            formaTiro = temp.getBounds();
+            if(formaTiro.intersects(enemyBounds)){
+                hp = enemy.getHp();
+                hp--;
+                enemy.setHp(hp);
+                if(hp<=0){
+                    enemy.setVisible(false);
+                }
+                temp.setVisible(false);
             }
         }
     }
-
+    
+    public void checarColisoesVisual(Player p, Player enemy){
+        // Verifica se algum disparo atingiu o player e reduz o HP;
+        Rectangle enemyBounds = enemy.getBounds();
+        Rectangle formaTiro;
+        List<Tiro> tiros = p.getTiros();
+        for(int i=0; i<tiros.size(); i++){
+            Tiro temp = tiros.get(i);
+            formaTiro = temp.getBounds();
+            if(formaTiro.intersects(enemyBounds)){
+                temp.setVisible(false);
+            }
+        }
+    }
+    
     @Override
     public void actionPerformed(ActionEvent e) {
+        player2.update();
         player.update();
-
-        extrapolateRemote( System.currentTimeMillis() );
-
-        estrelas.removeIf(s -> !s.isVisible());
-        estrelas.forEach(Estrelas::update);
-
-        player.getTiros().removeIf(t -> !t.isVisible());
-        player.getTiros().forEach(Tiro::update);
-        player2.getTiros().removeIf(t -> !t.isVisible());
-        player2.getTiros().forEach(Tiro::update);
-
-        checarColisoes(player, player2);
-        checarColisoes(player2, player);
-
-        try {
-            network.sendState(player, lastShot);
-            lastShot = false;
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        
+        for(int j=0; j<estrelas.size(); j++){
+            Estrelas s = estrelas.get(j);
+            if(s.isVisible()){
+                s.update();
+            } else {
+                estrelas.remove(j);
+            }
         }
-
+        
+        List<Tiro> tiros = player.getTiros();
+        for(int i=0; i<tiros.size(); i++){
+            Tiro m = tiros.get(i);
+            if(m.isVisible()){
+                m.update();
+            } else {
+                tiros.remove(i);
+            }
+        }
+        
+        List<Tiro> tiros2 = player2.getTiros();
+        for(int i=0; i<tiros2.size(); i++){
+            Tiro m = tiros2.get(i);
+            if(m.isVisible()){
+                m.update();
+            } else {
+                tiros2.remove(i);
+            }
+        }
+        
+        if(isHost){
+            checarColisoes(player, player2);
+            checarColisoes(player2, player);
+        } else {
+            checarColisoesVisual(player, player2);
+            checarColisoesVisual(player2, player);
+        }
+        
         repaint();
     }
 
-    /**
-     * Extrapola a posição do player remoto com base na última velocidade conhecida.
-     */
-    private void extrapolateRemote(long currentTime) {
-        if (lastReceiveTime <= 0) return;
-        float dt = (currentTime - lastReceiveTime) / 1000f;
-        // Limita extrapolação a 0.5s para evitar grandes saltos
-        dt = Math.min(dt, 0.5f);
-        int extrapX = (int) (lastReceivedX + velocityX * dt);
-        int extrapY = (int) (lastReceivedY + velocityY * dt);
-
-        // Ajusta Y invertido conforme lógica original
-        int invertedY = alturaVisivel - extrapY - player2.getAltura();
-        player2.setX(extrapX);
-        player2.setY(invertedY);
+    public Player getPlayer(){
+        return player;
     }
-
-    private void networkLoop() {
-        while (true) {
-            try {
-                String data = network.receiveState();
-                String[] p = data.split(";");
-                int x = Integer.parseInt(p[0]);
-                int receivedY = Integer.parseInt(p[1]);
-                boolean shot = Boolean.parseBoolean(p[2]);
-                long receiveTime = System.currentTimeMillis();
-
-                // Atualiza velocidades para extrapolação
-                if (lastReceiveTime > 0) {
-                    float dt = (receiveTime - lastReceiveTime) / 1000f;
-                    if (dt > 0) {
-                        velocityX = (x - lastReceivedX) / dt;
-                        velocityY = (receivedY - lastReceivedY) / dt;
-                    }
-                }
-                lastReceiveTime = receiveTime;
-                lastReceivedX = x;
-                lastReceivedY = receivedY;
-
-                SwingUtilities.invokeLater(() -> {
-                    // Ajusta posição direta ao receber
-                    player2.setX(x);
-                    int invertedY = alturaVisivel - receivedY - player2.getAltura();
-                    player2.setY(invertedY);
-                    if (shot) player2.tiro();
-                });
-            } catch (Exception ex) {
-                ex.printStackTrace();
+    
+    public Player getPlayer2(){
+        return player2;
+    }
+    
+    private class Teclado extends KeyAdapter{
+        @Override
+        public void keyPressed(KeyEvent e){
+            if(isHost){
+                player.keyPressed(e);
+            } else {
+                player2.keyPressed(e);
+            }
+        }
+        
+        @Override
+        public void keyReleased(KeyEvent e){
+            if(isHost){
+                player.keyRelease(e);
+            } else {
+                player2.keyRelease(e);
             }
         }
     }
 
-    private class Teclado extends KeyAdapter {
-        @Override
-        public void keyPressed(KeyEvent e) {
-            player.keyPressed(e);
-            if (e.getKeyCode() == KeyEvent.VK_F) lastShot = true;
-        }
-
-        @Override
-        public void keyReleased(KeyEvent e) {
-            player.keyRelease(e);
-        }
+    public void setHost(boolean host) {
+        isHost = host;
     }
 }
