@@ -1,18 +1,22 @@
 package Model;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Fase extends JPanel implements ActionListener {
-    private Image fundo;
-    private Player player, player2;
-    private Timer timer;
+    private final Image fundo;
+    private final Player player, player2;
     private List<Estrelas> estrelas;
     int alturaVisivel, larguraVisivel;
     private boolean isHost;
+    private Image ex;
     public Fase(){
         setFocusable(true);
         setDoubleBuffered(true);
@@ -24,7 +28,6 @@ public class Fase extends JPanel implements ActionListener {
             public void componentResized(ComponentEvent e) {
                 // Verifica se a tela é redimensionada, se for atualiza os valores de
                 // Altura e Largura em cada player
-
                 alturaVisivel = getHeight();
                 larguraVisivel = getWidth();
                 if (player != null) {
@@ -36,7 +39,6 @@ public class Fase extends JPanel implements ActionListener {
             }
         });
 
-
         player = new Player("images/nave1.png", true, "images/projectile_1.png");
         player.load();
 
@@ -45,7 +47,7 @@ public class Fase extends JPanel implements ActionListener {
 
         addKeyListener(new Teclado());
 
-        timer = new Timer(5,this);
+        Timer timer = new Timer(5, this);
         timer.start();
         inicializarEstrelas();
     }
@@ -59,15 +61,15 @@ public class Fase extends JPanel implements ActionListener {
         Graphics2D graficos = (Graphics2D) g;
         // Exibe a imagem de fundo no painel;
         graficos.drawImage(fundo, 0, 0, getWidth(), getHeight(), null);
-//        if(player.isVisible() && !player2.isVisible()){
-//            g.setColor(Color.RED);
-//            g.setFont(new Font("Arial", Font.BOLD, 36));
-//            g.drawString("Player 1 Wins!", 50, 100);
-//        }else if(!player.isVisible() && player2.isVisible()){
-//            g.setColor(Color.BLUE);
-//            g.setFont(new Font("Arial", Font.BOLD, 36));
-//            g.drawString("Player 2 Wins!", 50, 100);
-//        }else{}
+        if(player.isVisible() && !player2.isVisible()){
+            g.setColor(Color.RED);
+            g.setFont(new Font("Arial", Font.BOLD, 36));
+            g.drawString("Player 1 Wins!", 50, 100);
+        }else if(!player.isVisible() && player2.isVisible()) {
+            g.setColor(Color.BLUE);
+            g.setFont(new Font("Arial", Font.BOLD, 36));
+            g.drawString("Player 2 Wins!", 50, 100);
+        }
 
             // Percorre o array exibindo a estrelas;
             for (Estrelas s : estrelas) {
@@ -113,13 +115,12 @@ public class Fase extends JPanel implements ActionListener {
                     m.draw(g);
                 }
             }
-
         g.dispose();
     }
     public void inicializarEstrelas(){
         // Inicializa as estrelas em posições aleátorias e armazena em um array;
-        int coordenadas[] = new int[5];
-         estrelas = new ArrayList<Estrelas>();
+        int[] coordenadas = new int[5];
+         estrelas = new ArrayList<>();
          for(int i=0;i<coordenadas.length;i++){
              int altura = this.getHeight() > 0 ? this.getHeight() : 768;
              int largura = this.getWidth() > 0 ? this.getWidth() : 1024;
@@ -153,7 +154,6 @@ public class Fase extends JPanel implements ActionListener {
         Rectangle enemyBounds = enemy.getBounds();
         Rectangle formaTiro;
         List<Tiro> tiros = p.getTiros();
-        int hp;
         for(int i=0;i<tiros.size();i++){
             Tiro temp = tiros.get(i);
             formaTiro = temp.getBounds();

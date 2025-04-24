@@ -8,7 +8,7 @@ public class Tiro {
     private int x, y;
     private int largura, altura;
     private boolean isVisible; // controla a visibilidade do tiro na tela
-    private static int velocidade = 2; // velocidade do tiro
+    private static int velocidade = 5; // velocidade do tiro
     private int alturaPainel;
     private int larguraPainel;
     private boolean isLocal;

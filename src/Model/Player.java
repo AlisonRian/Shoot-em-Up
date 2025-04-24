@@ -10,13 +10,13 @@ public class Player {
     private int x,y; // Posição do player no mapa;
     private int dx,dy;
     private Image imagem; // Imagem do player;
-    private int altura=64, largura=64; // Altura e largura do sprite;
-    private int velocidade=3; // Velocidade de movimento do player;
-    private List<Tiro> tiros; // Armazena os tiros disparados pelo player temporariamente;
-    private boolean isLocal; // Saber se o player é o Host ou Client;
+    private final int altura=64, largura=64; // Altura e largura do sprite;
+    private final int velocidade=3; // Velocidade de movimento do player;
+    private final List<Tiro> tiros; // Armazena os tiros disparados pelo player temporariamente;
+    private final boolean isLocal; // Saber se o player é o Host ou Client;
     private boolean isVisible; // Define a visibilidade do jogador;
     private int hp; // quantidade de disparos necessários para ser derrotado;
-    private String projectile; // Path do sprite do disparo;
+    private final String projectile; // Path do sprite do disparo;
     private int faseHeight, faseWidth; // Altura e Largura da tela;
     private long ultimoTiro;// para armazenar o timestamp do último tiro
     private int qtdTiros;
@@ -25,7 +25,7 @@ public class Player {
         this.imagem =  new ImageIcon(path).getImage();
         this.projectile = pathProjectile;
         this.isLocal = local;
-        tiros = new ArrayList<Tiro>();
+        tiros = new ArrayList<>();
         this.isVisible = true;
         this.hp = 5;
         if(isLocal){
@@ -51,7 +51,7 @@ public class Player {
         if(!isLocal && y>=faseHeight/2) y = faseHeight/2;
     }
     public void tiro(){
-        long agora = System.currentTimeMillis(); // Pega o momento em que o tiro foi disparo;
+        long agora = System.currentTimeMillis(); // Pega o momento em que o tiro foi disparado                                                                                                           ;
         int offsetX = x + (largura / 2) - 4; // Define o meio da nave no eixo X;
         int offsetY;
         if(isLocal){ // Utilizado para definir o local da nave no eixo Y onde sai o disparo;
@@ -134,10 +134,6 @@ public class Player {
     public int getY(){
         return y;
     }
-    public Image getImagem(){
-        return imagem;
-    }
-
     public List<Tiro> getTiros() {
         return tiros;
     }

@@ -1,13 +1,10 @@
-import Model.Fase;
 import Model.Player;
-import Model.Tiro;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -26,13 +23,16 @@ public class Servidor {
                 final Player player1 = jogo.getPlayer1();
                 final Player player2 = jogo.getPlayer2();
                 new Thread(()->{
+                    Timestamp timestamp_recebido;
                     try {
                         BufferedReader entrada = new BufferedReader(new InputStreamReader(cliente.getInputStream()));
                         String msg;
                         String tipo;
                         while((msg = entrada.readLine()) != null){
+                                timestamp_recebido = new Timestamp(System.currentTimeMillis());
+                                System.out.println("Input recebido: "+timestamp_recebido);
                                 tipo = tipoMsg(msg);
-                                System.out.println("Cliente disse: " + msg);
+                                /*System.out.println("Cliente disse: " + msg);*/
                                 if(tipo.equals("POS")){
                                     int[] e = extrairMsg(msg);
                                     player2.setX(e[0]);
@@ -58,19 +58,24 @@ public class Servidor {
                 AtomicInteger hp1Anterior = new AtomicInteger(0);
                 AtomicInteger hp2Anterior = new AtomicInteger(0);
                 new Thread(() -> {
+                    Timestamp timestamp_enviado;
                     try {
                         PrintWriter saida = new PrintWriter(cliente.getOutputStream(), true);
                         while (true) {
                             int x = player1.getX();
                             int y = player1.getY();
                             if(x != xAnterior.get() || y != yAnterior.get()){
+                                timestamp_enviado = new Timestamp(System.currentTimeMillis());
                                 saida.println("POS:" + x + "," + y);
+                                System.out.println("Input enviado(MOVIMENTAÇÃO): "+timestamp_enviado);
                                 xAnterior.set(x);
                                 yAnterior.set(y);
                             }
                             int qtdTiros = player1.getQtdTiros();
                             if(qtdTiros>qtdAnterior.get()){
+                                timestamp_enviado = new Timestamp(System.currentTimeMillis());
                                 saida.println("TIR:");
+                                System.out.println("Input enviado(TIRO): "+timestamp_enviado);
                                 qtdAnterior.set(qtdTiros);
                             }
                             if(hp1Anterior.get()!=player1.getHp()){
